@@ -73,18 +73,17 @@ non_zero_coef <- sum(coef_lasso != 0)  # 输出非零系数数量（如：8）
 print("Lasso测试误差：")
 print(test_error_lasso)  # 输出测试误差（通常比OLS小，且因特征选择更简洁）
 
-# (e) 主成分回归（PCR）模型（含交叉验证选主成分数M） 
+# (e) 主成分回归（PCR）模型（含交叉验证选主成分数M）
 library(pls)
 
 # 训练PCR模型（scale=TRUE标准化预测变量）
-pcr_model <- pcr(Apps ~ ., data = train, scale = TRUE, validation = "CV")  
+pcr_model <- pcr(Apps ~ ., data = train, scale = TRUE, validation = "CV")
 
 # 交叉验证选最优ncomp（使用MSEP函数获取最佳主成分数）
-# 正确的方法是使用validationplot或者直接访问MSEP
-best_ncomp_pcr <- which.min(MSEP(pcr_model)$val[1, 1,])  # 最优ncomp
+best_ncomp_pcr <- which.min(MSEP(pcr_model)$val[1, 1, ])  # 最优ncomp
 
 # 测试集预测与误差
-pred_pcr <- predict(pcr_model, newdata = test, ncomp = best_ncomp_pcr)  
+pred_pcr <- predict(pcr_model, newdata = test, ncomp = best_ncomp_pcr)
 test_error_pcr <- mean((test$Apps - pred_pcr)^2)
 
 print("最优主成分数：")
@@ -92,9 +91,11 @@ print(best_ncomp_pcr)  # 输出最优主成分数
 print("主成分回归测试误差：")
 print(test_error_pcr)    # 输出测试误差（降维后误差可能降低）
 
+# 添加PLS模型训练
+pls_model <- plsr(Apps ~ ., data = train, scale = TRUE, validation = "CV")  # 新增这一行
+
 # 交叉验证选最优ncomp（正确访问MSEP的方法）
-# 使用与PCR相同的方法
-mse_values <- MSEP(pls_model)$val[1, 1, ]
+mse_values <- MSEP(pls_model)$val[1, 1, ]  # 现在可以正常工作
 best_ncomp_pls <- which.min(mse_values)  # 最优ncomp
 
 # 确保获得有效的主成分数
@@ -105,7 +106,7 @@ if(is.null(best_ncomp_pls) || length(best_ncomp_pls) == 0 || is.na(best_ncomp_pl
 }
 
 # 测试集预测与误差
-pred_pls <- predict(pls_model, newdata = test, ncomp = best_ncomp_pls)  
+pred_pls <- predict(pls_model, newdata = test, ncomp = best_ncomp_pls)
 test_error_pls <- mean((test$Apps - pred_pls)^2, na.rm = TRUE)
 
 print("最优主成分数：")

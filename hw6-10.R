@@ -99,3 +99,39 @@ print(best_coef)
 cat("真实模型系数：\n")
 print(true_beta)
 
+# (g) 计算并绘制系数估计误差的平方根：sqrt(sum(beta_j - beta_hat_j)^2)
+# 初始化向量存储系数误差
+coef_error <- numeric(p)
+
+for (r in 1:p) {
+    coef_r <- coef(subset_fit, id = r)  # 获取第 r 个最优模型的系数
+    # 构造长度为 p+1 的系数向量（含截距），其余为0
+    coef_vec <- rep(0, p + 1)
+    names(coef_vec) <- c("(Intercept)", paste("X", 1:p, sep=""))
+    
+    # 将当前模型的系数赋值到对应位置
+    for (name in names(coef_r)) {
+        idx <- which(names(coef_vec) == name)
+        if (length(idx) > 0) {
+            coef_vec[idx] <- coef_r[name]
+        }
+    }
+    
+    # 真实系数（包含截距项）
+    true_beta_full <- c(0, beta)  # 截距为0，真实β前5个为1，其余为0
+    
+    # 计算系数误差的L2范数
+    coef_error[r] <- sqrt(sum((true_beta_full - coef_vec)^2))
+}
+
+# 绘制图像
+plot(1:p, coef_error, type = "l", col = "blue", lwd = 2,
+     xlab = "模型大小 r", ylab = "系数估计误差 L2 范数",
+     main = "系数估计误差 vs 模型大小")
+grid()
+
+# 绘制测试集 MSE 图像（补充）
+plot(1:p, test_mse, type = "l", col = "red", lwd = 2,
+     xlab = "模型大小 r", ylab = "测试集 MSE",
+     main = "测试集 MSE vs 模型大小")
+grid()
